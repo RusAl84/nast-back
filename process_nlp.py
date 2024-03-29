@@ -445,7 +445,8 @@ if __name__ == '__main__':
     # print(score)
     
 
-    filename="d:/ml/chat/andromedica_small.json"
+    # filename="d:/ml/chat/andromedica_small.json"
+    filename="d:/ml/chat/andromedica1.json"
     save_filename="./nast_data_proc.json"
     
     nast_data_proc(filename, save_filename, 32)
