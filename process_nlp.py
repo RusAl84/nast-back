@@ -405,11 +405,14 @@ def nast_data_proc(filename, save_filename, threshold=0):
         line["message_id"] = m["message_id"]
         line["user_id"] = m["user_id"]
         line["reply_message_id"] = m["reply_message_id"]
+        line["text"] = text
         line["fuzzScore"] = get_fuzzScore(text, messages)
         
         proc_messages.append(line)
         
         
+        
+    proc_messages = sorted(proc_messages, key=lambda d: d['fuzzScore'])
     jsonstring = json.dumps(proc_messages, ensure_ascii=False)
     # print(jsonstring)
     # name = filename.split(".")[0]
@@ -418,12 +421,13 @@ def nast_data_proc(filename, save_filename, threshold=0):
         file.write(jsonstring)
     # return proc_messages
 
-def get_fuzzScore(text1, messages):
+def get_fuzzScore(text1, messages,treshold=80):
     from fuzzywuzzy import fuzz #https://habr.com/ru/articles/491448/
     score=0
     for m in messages:
         text2 = m["text"]
-        score += fuzz.WRatio(text1, text2)
+        if (fuzz.WRatio(text1, text2) > treshold):
+            score += 1
     # print(score)
     return score
 
@@ -441,20 +445,11 @@ if __name__ == '__main__':
     # print(score)
     
 
-    filename="d:/ml/chat/andromedica1.json"
-    save_filename="./data_proc.json"
+    filename="d:/ml/chat/andromedica_small.json"
+    save_filename="./nast_data_proc.json"
     
     nast_data_proc(filename, save_filename, 32)
-    
-    
-
-    
+      
     # data_proc(filename, save_filename, 32) #
     # find_cl(save_filename)#
     # find_type("./find_data.json", 'RAKE')#
-    
-    
-    
-    
-    
-    
