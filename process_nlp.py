@@ -405,6 +405,8 @@ def nast_data_proc(filename, save_filename, threshold=0):
         line["message_id"] = m["message_id"]
         line["user_id"] = m["user_id"]
         line["reply_message_id"] = m["reply_message_id"]
+        line["fuzzScore"] = get_fuzzScore(text, messages)
+        
         proc_messages.append(line)
         
         
@@ -416,7 +418,14 @@ def nast_data_proc(filename, save_filename, threshold=0):
         file.write(jsonstring)
     # return proc_messages
 
-
+def get_fuzzScore(text1, messages):
+    from fuzzywuzzy import fuzz #https://habr.com/ru/articles/491448/
+    score=0
+    for m in messages:
+        text2 = m["text"]
+        score += fuzz.WRatio(text1, text2)
+    # print(score)
+    return score
 
 if __name__ == '__main__':
     # nltk_download()
@@ -427,15 +436,15 @@ if __name__ == '__main__':
     # t = get_pattern(data)
     # print(t)
     
-    from fuzzywuzzy import fuzz
-    score = fuzz.WRatio('Привет наш мир', '!ПриВЕт, наш мир!')
-    print(score)
+    # from fuzzywuzzy import fuzz #https://habr.com/ru/articles/491448/
+    # score = fuzz.WRatio('Привет наш мир', '!ПриВЕт, наш мир!')
+    # print(score)
     
 
     filename="d:/ml/chat/andromedica1.json"
     save_filename="./data_proc.json"
     
-    # nast_data_proc(filename, save_filename, 32)
+    nast_data_proc(filename, save_filename, 32)
     
     
 
@@ -444,7 +453,7 @@ if __name__ == '__main__':
     # find_cl(save_filename)#
     # find_type("./find_data.json", 'RAKE')#
     
-    #https://habr.com/ru/articles/491448/
+    
     
     
     
