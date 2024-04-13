@@ -84,64 +84,64 @@ def load_data_proc(filename):
     return messages
 
 
-# def remove_digit(data):
-#     str2 = ''
-#     for c in data:
-#         if c not in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '«', '»', '–', "\""):
-#             str2 = str2 + c
-#     data = str2
-#     return data
+def remove_digit(data):
+    str2 = ''
+    for c in data:
+        if c not in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '«', '»', '–', "\""):
+            str2 = str2 + c
+    data = str2
+    return data
 
 
-# def remove_punctuation(data):
-#     str2 = ''
-#     import string
-#     pattern = string.punctuation
-#     for c in data:
-#         if c not in pattern:
-#             str2 = str2 + c
-#         else:
-#             str2 = str2 + ""
-#     data = str2
-#     return data
+def remove_punctuation(data):
+    str2 = ''
+    import string
+    pattern = string.punctuation
+    for c in data:
+        if c not in pattern:
+            str2 = str2 + c
+        else:
+            str2 = str2 + ""
+    data = str2
+    return data
 
 
-# def remove_stopwords(data):
-#     str2 = ''
-#     from nltk.corpus import stopwords
-#     russian_stopwords = stopwords.words("russian")
-#     for word in data.split():
-#         if word not in (russian_stopwords):
-#             str2 = str2 + " " + word
-#     data = str2
-#     return data
+def remove_stopwords(data):
+    str2 = ''
+    from nltk.corpus import stopwords
+    russian_stopwords = stopwords.words("russian")
+    for word in data.split():
+        if word not in (russian_stopwords):
+            str2 = str2 + " " + word
+    data = str2
+    return data
 
 
-# def remove_short_words(data, length=1):
-#     str2 = ''
-#     for line in data.split("\n"):
-#         str3 = ""
-#         for word in line.split():
-#             if len(word) > length:
-#                 str3 += " " + word
-#         str2 = str2 + "\n" + str3
-#     data = str2
-#     return data
+def remove_short_words(data, length=1):
+    str2 = ''
+    for line in data.split("\n"):
+        str3 = ""
+        for word in line.split():
+            if len(word) > length:
+                str3 += " " + word
+        str2 = str2 + "\n" + str3
+    data = str2
+    return data
 
 
-# def remove_paragraf_to_lower(data):
-#     data = data.lower()
-#     data = data.replace('\n', ' ')
-#     return data
+def remove_paragraf_to_lower(data):
+    data = data.lower()
+    data = data.replace('\n', ' ')
+    return data
 
 
-# def remove_all(data):
-#     data = remove_digit(data)
-#     data = remove_punctuation(data)
-#     data = remove_stopwords(data)
-#     data = remove_short_words(data, length=3)
-#     data = remove_paragraf_to_lower(data)
-#     return data
+def remove_all(data):
+    data = remove_digit(data)
+    data = remove_punctuation(data)
+    data = remove_stopwords(data)
+    data = remove_short_words(data, length=3)
+    data = remove_paragraf_to_lower(data)
+    return data
 
 
 # def get_RAKE(text):
@@ -221,13 +221,14 @@ def load_data_proc(filename):
 #     return data
 
 
-# def get_normal_form_mas(words):
-#     morph = pymorphy2.MorphAnalyzer()
-#     result = []
-#     for word in words.split():
-#         p = morph.parse(word)[0]
-#         result.append(p.normal_form)
-#     return result
+def get_normal_form_mas(words):
+    import pymorphy2
+    morph = pymorphy2.MorphAnalyzer()
+    result = []
+    for word in words.split():
+        p = morph.parse(word)[0]
+        result.append(p.normal_form)
+    return result
 
 
 # def get_normal_form(words):
@@ -392,27 +393,21 @@ def nast_data_proc(filename, save_filename, threshold=0):
     proc_messages = []  
     for m in messages:
         text = m["text"]
-        print(f"{num / count_messages * 100}     {count_messages-num}     {num} / {count_messages}")
         num += 1
         if len(text) < threshold:
             continue
-        # line = get_pattern(text)
-        
-        
-        
         line = {}
         line["date"] = m["date"]
         line["message_id"] = m["message_id"]
         line["user_id"] = m["user_id"]
         line["reply_message_id"] = m["reply_message_id"]
         line["text"] = text
-        line["fuzzScore"] = get_fuzzScore(text, messages)
-        
+        # line["fuzzScore"] = get_fuzzScore(text, messages)
+        lemScore = get_lemScore(text, messages)
+        line["lemScore"] = lemScore
+        print(f"{num / count_messages * 100}     {count_messages-num}     {num} / {count_messages}   lemScore={lemScore}")
         proc_messages.append(line)
-        
-        
-        
-    proc_messages = sorted(proc_messages, key=lambda d: d['fuzzScore'])
+    proc_messages = sorted(proc_messages, key=lambda d: d['lemScore'])
     jsonstring = json.dumps(proc_messages, ensure_ascii=False)
     # print(jsonstring)
     # name = filename.split(".")[0]
@@ -431,11 +426,22 @@ def get_fuzzScore(text1, messages,treshold=80):
     # print(score)
     return score
 
+def get_lemScore(text1, messages):
+    res = 0
+    text1 = remove_all(text1)
+    text1 = get_normal_form_mas(text1)
+    for m in messages:
+        text2 = m["text"]
+        text2 = remove_all(text2)
+        text2 = get_normal_form_mas(text2)
+        res += calc_intersection_list(text1,text2)
+    return res  
+
 if __name__ == '__main__':
     # nltk_download()
-    #s1 = """
-    # Дарим 1000 бонусов за 1-ю авторизацию в мобильном приложении до 22.03.2023. Используйте бонусы на онлайн покупки. Clck.ru/33gyhM
-    #"""
+    s1 = """
+     Дарим 1000 бонусов за 1-ю авторизацию в мобильном приложении до 22.03.2023. Используйте бонусы на онлайн покупки. Clck.ru/33gyhM
+    """
     #add_data(s1)
     # t = get_pattern(data)
     # print(t)
@@ -446,11 +452,17 @@ if __name__ == '__main__':
     
 
     # filename="d:/ml/chat/andromedica_small.json"
-    filename="d:/ml/chat/andromedica1.json"
-    save_filename="./nast_data_proc.json"
     
+    
+    
+    
+    filename="d:/ml/chat/andromedica1.json"
+    filename="d:/ml/chat/andromedica_small.json"
+    save_filename="./nast_data_proc.json"
     nast_data_proc(filename, save_filename, 32)
-      
+    
+    
+
     # data_proc(filename, save_filename, 32) #
     # find_cl(save_filename)#
     # find_type("./find_data.json", 'RAKE')#
